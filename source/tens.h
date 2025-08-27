@@ -73,7 +73,7 @@ void tensSetOutputChannel(Tens_t *tens, unsigned char channel, unsigned char mod
 void tensStartOutput(Tens_t *tens);
 void tensStopOutput(Tens_t *tens);
 void tensPauseOutput(Tens_t *tens);
-void tensLoadPrescData(Tens_t *tens, unsigned char id);
+unsigned short tensLoadPrescData(Tens_t *tens, unsigned char chann);
 void tensSetOutputTime(Tens_t *tens, unsigned short time, unsigned short defaultTime);
 void tensRunTimeUpdate(Tens_t *tens);
 void tensSetHeat(Tens_t *tens, unsigned char level);

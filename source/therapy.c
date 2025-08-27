@@ -74,10 +74,10 @@ unsigned char* tmFindPrescription(TherapyManager_t *tm, unsigned char id, unsign
     
     tlen = ((*(unsigned char*)(t + 4)) << 8) + *(unsigned char*)(t + 5);
     chanCnt = *(unsigned char*)(t + 6);
-    if(id >= chanCnt) return 0;
+    if(chann >= chanCnt) return 0;
 
     p = (unsigned char*)(t + 7);
-    while(idx < id) {
+    while(idx < chann) {
         len = ((*(unsigned char*)(p + 0)) << 8) + *(unsigned char*)(p + 1);
         p += len + 2;
         idx++;

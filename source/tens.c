@@ -163,6 +163,7 @@ static void keyPowerPressed(void)
 
 static void keyScanChanged(unsigned char state)
 {
+	unsigned char ret = 0;
 	unsigned char flag = 0;
 	
 	if(state == 6) {		//up
@@ -237,8 +238,8 @@ static void keyScanChanged(unsigned char state)
 				tensoutStopOutput(&privateTens.tensOutput);
 				privateTens.state = TENS_IDLE;
 			}
-			tensLoadPrescData(&privateTens, privateTens.prescId);
-			if(flag) {
+			ret = tensLoadPrescData(&privateTens, 0);
+			if(flag && ret) {
 				tensStartOutput(&privateTens);
 			}
 			mtStart(&privateTens.motorTip, 0, MOTORTIP_MODE1);
@@ -251,8 +252,8 @@ static void keyScanChanged(unsigned char state)
 				tensoutStopOutput(&privateTens.tensOutput);
 				privateTens.state = TENS_IDLE;
 			}
-			tensLoadPrescData(&privateTens, privateTens.prescId);
-			if(flag) {
+			ret = tensLoadPrescData(&privateTens, 0);
+			if(flag && ret) {
 				tensStartOutput(&privateTens);
 			}
 			mtStart(&privateTens.motorTip, 0, MOTORTIP_MODE1);
@@ -563,7 +564,7 @@ void tensInit(Tens_t *tens)
 #if 1
 	tmInit(&tens->therapyManager, PRESC_DATA_ADDR, TPMARK, halFlashErase, halFlashWrite);
 #endif
-	tensLoadPrescData(tens, tens->prescId);
+	tensLoadPrescData(tens, 0);
 	tensSetOutputChannel(tens, 2, 2);
 	
 	//guiInit(tens);
@@ -667,11 +668,11 @@ void tensSetOutputChannel(Tens_t *tens, unsigned char channel, unsigned char mod
 	}
 }
 
-unsigned short tensGetPrescData(Tens_t *tens, unsigned char id, unsigned char *data)
+unsigned short tensGetPrescData(Tens_t *tens, unsigned char chann, unsigned char *data)
 {
 	unsigned char *p;
 	unsigned short i, len;
-	p = tmFindPrescription(&tens->therapyManager, id, 0);
+	p = tmFindPrescription(&tens->therapyManager, tens->prescId-1, chann);
 	if(p == 0) return 0;
 	
 	p += 9;
@@ -680,21 +681,17 @@ unsigned short tensGetPrescData(Tens_t *tens, unsigned char id, unsigned char *d
 	return len;
 }
 
-void tensLoadPrescData(Tens_t *tens, unsigned char id)
+unsigned short tensLoadPrescData(Tens_t *tens, unsigned char chann)
 {
 	int len;
-	if(id > PRESC_DATA_SIZE) return;
-	if(id == 0) {
-		
-	} else {
-#if 1
-		len = tensGetPrescData(tens, id - 1, tmpBuff);
-#else
-		len = tensdataGetPrescData(id, tmpBuff);
-#endif
-		if(len > 0) tensoutSetPrescription(&tens->tensOutput, tmpBuff, len);
+	if(tens->prescId <= 0 || tens->prescId > PRESC_DATA_SIZE) return 0;
+	len = tensGetPrescData(tens, 0, tmpBuff);
+	if(len > 0) {
+		tensoutSetPrescription(&tens->tensOutput, tmpBuff, len);
+		guiUpdatePresc(tens);
 	}
-	guiUpdatePresc(tens);
+	
+	return (len > 0 ? 1 : 0);
 }
 
 void tensStartOutput(Tens_t *tens)

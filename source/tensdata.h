@@ -24,7 +24,6 @@ void tensdataEraseTherapyFlash(void);
 int tensdataSaveTherapyData(unsigned char id, unsigned char *data, int len);
 int tensdataSavePrescData(unsigned char id, unsigned char *data, int len);
 int tensdataSavePaintData(unsigned char id, unsigned char *data, int len);
-int tensdataGetPrescData(unsigned char id, unsigned char *data);
 unsigned short tensdataGetPrescDataFromFlash(unsigned char id, unsigned char *data);
 void tensdataLoadPrescData(void);
 void tensdataEraseFWFlash(void);

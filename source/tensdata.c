@@ -36,22 +36,6 @@ int tensdataSavePaintData(unsigned char id, unsigned char *data, int len)
 	return 1;
 }
 
-int tensdataGetPrescData(unsigned char id, unsigned char *data)
-{
-	unsigned short i;
-	if((id > PRESC_DATA_SIZE) || id == 0) return 0;
-	if(id != prescDatas[id - 1].pos) return 0;
-	if(prescDatas[id - 1].len == 0) return 0;
-#if 0
-	
-#else
-	for(i = 0; i < prescDatas[id - 1].len; i++) {
-		data[i] = *(unsigned char*)(prescDatas[id - 1].data + i);
-	}
-	return prescDatas[id - 1].len;
-#endif
-}
-
 unsigned short tensdataGetPrescDataFromFlash(unsigned char id, unsigned char *data)
 {
 	if((id > PRESC_DATA_SIZE) || (id == 0)) return 0;
