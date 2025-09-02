@@ -1,27 +1,30 @@
 #include "tensgui.h"
 #include "lcd.h"
 
+#define MW_RECT				0, 0, 320, 240
 
-#define BAT_RECT			248, 11, 304, 39
-#define BT_RECT				218, 10, 234, 38
+#define BAT_POS				248, 11
+#define BAT_RECT			BAT_POS, 303, 38
+#define BT_POS				218, 10
+#define BT_RECT				BT_POS, 233, 37
 
-#define PRESC_RECT		70, 65, 170, 125
 #define PRESC_POS			70, 65
+#define PRESC_RECT		PRESC_POS, 169, 124
 #define STRENGTH_POS	65, 135
-#define STRENGTH_RCT	65, 135, 120, 185
+#define STRENGTH_RCT	STRENGTH_POS, 120, 185
 #define STRENGTH_CLOSE_POS 70, 143, 93, 166
-#define VIB_RECT			160, 135, 199, 174
 #define VIB_POS				160, 135
+#define VIB_RECT			VIB_POS, 199, 174
 #define VIBNUM_POS		173, 142
-#define HEAT_RECT			235, 135, 300, 185
 #define HEAT_POS			235, 135
+#define HEAT_RECT			HEAT_POS, 300, 185
 #define HEAT_CLOSE_POS 245, 143, 268, 166
 #define C_POS					276, 143, 299, 166
-#define LTIME_RECT		0, 0, 0, 0
 #define LTIME_POS			0, 0
+#define LTIME_RECT		LTIME_POS, 0, 0
 #define TENSSTAT_RECT	140, 195, 179, 236
-#define TENSTIME_RECT	200, 65, 300, 105
 #define TENSTIME_POS	200, 65
+#define TENSTIME_RECT	TENSTIME_POS, 300, 105
 
 extern const unsigned char gImage_mainui[];	//320X240
 extern const unsigned char gImage_bat0[];	//50X28
@@ -51,7 +54,7 @@ void guiInit(Tens_t *tens)
 	//lcdClear(WHITE);
 	//draw main gui picture
 	//lcdDispPic1(gImage_tensui);
-	lcdDispPic(0, 0, 320 - 1, 240 - 1, gImage_mainui, BLACK, WHITE);
+	lcdDispPic(MW_RECT, gImage_mainui, BLACK, WHITE);
 	//draw data
 	guiUpdateBattery(tens);
 	guiUpdateBluetooth(tens);
@@ -74,29 +77,29 @@ void guiPoweroff(void)
 
 void guiUpdateBluetooth(Tens_t *tens)
 {
-	//lcdFill(218, 10, 239, 38, WHITE);
-	if(tens->btState) lcdDispPic(218, 10, 234 - 1, 38 - 1, gImage_bton, BLACK, WHITE);
-	else lcdDispPic(218, 10, 234 - 1, 38 - 1, gImage_btoff, BLACK, WHITE);
+	//lcdFill(BT_RECT, WHITE);
+	if(tens->btState) lcdDispPic(BT_RECT, gImage_bton, BLACK, WHITE);
+	else lcdDispPic(BT_RECT, gImage_btoff, BLACK, WHITE);
 }
 
 void guiUpdateBattery(Tens_t *tens)
 {
 #if 1
 	if(tens->chargeState) {
-		if(tens->battery.per <= 5) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_cbat0, BLACK, WHITE);
-		else if(tens->battery.per <= 30) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_cbat25, BLACK, WHITE);
-		else if(tens->battery.per <= 55) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_cbat50, BLACK, WHITE);
-		else if(tens->battery.per <= 80) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_cbat75, BLACK, WHITE);
-		else lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_bat100, BLACK, WHITE);
+		if(tens->battery.per <= 5) lcdDispPic(BAT_RECT, gImage_cbat0, BLACK, WHITE);
+		else if(tens->battery.per <= 30) lcdDispPic(BAT_RECT, gImage_cbat25, BLACK, WHITE);
+		else if(tens->battery.per <= 55) lcdDispPic(BAT_RECT, gImage_cbat50, BLACK, WHITE);
+		else if(tens->battery.per <= 80) lcdDispPic(BAT_RECT, gImage_cbat75, BLACK, WHITE);
+		else lcdDispPic(BAT_RECT, gImage_bat100, BLACK, WHITE);
 	} else {
-		if(tens->battery.per <= 5) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_bat0, BLACK, WHITE);
-		else if(tens->battery.per <= 30) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_bat25, BLACK, WHITE);
-		else if(tens->battery.per <= 55) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_bat50, BLACK, WHITE);
-		else if(tens->battery.per <= 80) lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_bat75, BLACK, WHITE);
-		else lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_bat100, BLACK, WHITE);
+		if(tens->battery.per <= 5) lcdDispPic(BAT_RECT, gImage_bat0, BLACK, WHITE);
+		else if(tens->battery.per <= 30) lcdDispPic(BAT_RECT, gImage_bat25, BLACK, WHITE);
+		else if(tens->battery.per <= 55) lcdDispPic(BAT_RECT, gImage_bat50, BLACK, WHITE);
+		else if(tens->battery.per <= 80) lcdDispPic(BAT_RECT, gImage_bat75, BLACK, WHITE);
+		else lcdDispPic(BAT_RECT, gImage_bat100, BLACK, WHITE);
 	}
 #else
-	lcdDispPic(248, 11, 304 - 1, 39 - 1, gImage_bat100, BLACK, WHITE);
+	lcdDispPic(BAT_RECT, gImage_bat100, BLACK, WHITE);
 #endif
 }
 
