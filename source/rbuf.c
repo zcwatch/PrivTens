@@ -55,3 +55,7 @@ unsigned char rbufData(RBuf_t *rbuf, unsigned int pos)
     return rbuf->buf[(rbuf->rIdx + pos) % rbuf->size];
 }
 
+unsigned short rbufData2(RBuf_t *rbuf, unsigned int pos)
+{
+    return ((unsigned short)rbufData(rbuf, pos) << 8) + rbufData(rbuf, pos+1);
+}

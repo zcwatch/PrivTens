@@ -54,7 +54,7 @@ void tprotoDecode(TensProto_t *proto)
 		if(proto->decodeState == 0) {	//Check Header
 			if(rbufData(proto->rBuf, 0) == TENSPROTO_HEADER) {	
 				
-				proto->decodeLen = (rbufData(proto->rBuf, 1) << 8) + rbufData(proto->rBuf, 2);
+				proto->decodeLen = rbufData2(proto->rBuf, 1);
 				if(proto->decodeLen > TENSPROTO_MAXLEN) {
 					rbufReadData(proto->rBuf, proto->decodeBuf, 1);
 				} else {

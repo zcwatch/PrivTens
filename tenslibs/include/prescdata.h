@@ -1,6 +1,11 @@
 #ifndef __PRESCDATA_H
 #define __PRESCDATA_H
 
+#ifndef GETSHORT
+//#define GETSHORT(buf, pos) (((unsigned short)buf[pos] << 8) + buf[pos + 1])
+#define GETSHORT(buf, pos) (((unsigned short)*((unsigned char*)buf + pos) << 8) + *((unsigned char*)buf + pos + 1))
+#endif
+
 #define WAVE_PAINT                  0xe1
 #define WAVE_PAINT_SIZE             15
 

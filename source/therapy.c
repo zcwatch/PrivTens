@@ -1,4 +1,5 @@
 #include "therapy.h"
+#include "rbuf.h"
 
 // 初始化
 // 参数：
@@ -27,7 +28,7 @@ unsigned char tmLoadTherapy(TherapyManager_t *tm)
     unsigned short mark = *(unsigned short*)(tm->dataAddr);
     if(mark!= tm->mark) return 0;
     
-    tm->dataLen = ((*(unsigned char*)(tm->dataAddr + 6)) << 24) + ((*(unsigned char*)(tm->dataAddr + 7)) << 16) + ((*(unsigned char*)(tm->dataAddr + 8)) << 8) + *(unsigned char*)(tm->dataAddr + 9);
+    tm->dataLen = (GETSHORT(tm->dataAddr, 6) << 16) + GETSHORT(tm->dataAddr, 8);
     tm->count = *(unsigned char*)(tm->dataAddr + 10);
     tm->therapy = (unsigned char*)(tm->dataAddr + 11);
     return 1;
@@ -49,7 +50,7 @@ unsigned char* tmFindTherapy(TherapyManager_t *tm, unsigned int id)
 
     p = tm->therapy;
     while(idx < id) {
-        len = ((*(unsigned char*)(p + 4)) << 8) + *(unsigned char*)(p + 5);
+        len = GETSHORT(p, 4);
         p += len + 4;
         idx++;
     }
@@ -72,13 +73,13 @@ unsigned char* tmFindPrescription(TherapyManager_t *tm, unsigned char id, unsign
     t = tmFindTherapy(tm, id);
     if(t == 0) return 0;
     
-    tlen = ((*(unsigned char*)(t + 4)) << 8) + *(unsigned char*)(t + 5);
+    tlen = GETSHORT(t, 4);
     chanCnt = *(unsigned char*)(t + 6);
     if(chann >= chanCnt) return 0;
 
     p = (unsigned char*)(t + 7);
     while(idx < chann) {
-        len = ((*(unsigned char*)(p + 0)) << 8) + *(unsigned char*)(p + 1);
+        len = GETSHORT(p, 0);
         p += len + 2;
         idx++;
     }

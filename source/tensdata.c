@@ -2,6 +2,7 @@
 #include "tensconfig.h"
 #include "board.h"
 #include "prescapi.h"
+#include "rbuf.h"
 
 PrescData_t prescDatas[PRESC_DATA_SIZE] = { 0
 	// {1, 0, 0, 0}, {2, 0, 0, 0}, {3, 0, 0, 0}, {4, 0, 0, 0}, {5, 0, 0, 0},
@@ -54,7 +55,7 @@ void tensdataLoadPrescData(void)
 		if(prescDatas[i].pos == *(unsigned char*)(PRESC_DATA_ADDR + i * FLASH_SECTOR)) {
 			prescDatas[i].len = *(unsigned short*)(PRESC_DATA_ADDR + i * FLASH_SECTOR + 2);
 			prescDatas[i].data = (unsigned char*)(PRESC_DATA_ADDR + i * FLASH_SECTOR + 4);
-			prescDatas[i].id = (*(unsigned char*)(PRESC_DATA_ADDR + i * FLASH_SECTOR + 6) << 8) | *(unsigned char*)(PRESC_DATA_ADDR + i * FLASH_SECTOR + 7);
+			prescDatas[i].id = GETSHORT((PRESC_DATA_ADDR + i * FLASH_SECTOR + 6), 0);
 		}
 	}
 }

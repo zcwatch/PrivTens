@@ -107,7 +107,7 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
     switch(wave->type) {
         case WAVE_INTERVAL:
         wave->freq = 10;
-        wave->data.interval.time = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.interval.time = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = 1;
         break;
@@ -121,12 +121,12 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
         wave->data.trap.time[TIME_RISING] = 0;
-        wave->data.trap.time[TIME_HIGH] = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.trap.time[TIME_HIGH] = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->data.trap.time[TIME_FALLING] = 0;
-        wave->data.trap.time[TIME_LOW] = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.trap.time[TIME_LOW] = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         break;
@@ -139,14 +139,14 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         wave->shake = data[decode_len] & 0x0f;
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
-        wave->data.trap.time[TIME_RISING] = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.trap.time[TIME_RISING] = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->data.trap.time[TIME_HIGH] = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.trap.time[TIME_HIGH] = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->data.trap.time[TIME_FALLING] = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.trap.time[TIME_FALLING] = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->data.trap.time[TIME_LOW] = 0;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         break;
@@ -159,13 +159,13 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         wave->shake = data[decode_len] & 0x0f;
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
-        wave->data.trap.time[TIME_RISING] = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.trap.time[TIME_RISING] = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->data.trap.time[TIME_HIGH] = 0;
-        wave->data.trap.time[TIME_FALLING] = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.trap.time[TIME_FALLING] = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->data.trap.time[TIME_LOW] = 0;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         break;
@@ -178,9 +178,9 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         wave->shake = data[decode_len] & 0x0f;
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
-        wave->data.paint.time = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.paint.time = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         wave->data.paint.data = round;
@@ -195,9 +195,9 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         wave->shake = data[decode_len] & 0x0f;
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
-        wave->data.paint.time = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.paint.time = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         wave->data.paint.data = sine;
@@ -212,9 +212,9 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         wave->shake = data[decode_len] & 0x0f;
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
-        wave->data.paint.time = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.paint.time = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         wave->data.paint.data = exponential;
@@ -229,9 +229,9 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         wave->shake = data[decode_len] & 0x0f;
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
-        wave->data.paint.time = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.paint.time = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         wave->data.paint.data = logdata;
@@ -245,9 +245,9 @@ int decodeWave(Wave_t *wave, unsigned char *data, int len)
         wave->shake = data[decode_len] & 0x0f;
         if(!checkWaveShake(wave->shake)) return 0;
         decode_len++;
-        wave->data.paint.time = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->data.paint.time = GETSHORT(data, decode_len);
         decode_len += 2;
-        wave->interval = ((unsigned short)data[decode_len] << 8) + data[decode_len + 1];
+        wave->interval = GETSHORT(data, decode_len);
         decode_len += 2;
         wave->times = data[decode_len++];
         //wave->data.paint.data = logdata;
@@ -283,7 +283,7 @@ int decodeGroup(WaveGroup_t *group, unsigned char *data, int len)
 
     group->id = data[idx++];
     group->times = data[idx++];
-    group->interval = ((unsigned short)data[idx] << 8) + data[idx + 1];
+    group->interval = GETSHORT(data, idx);
     idx += 2;
     group->count = data[idx++];
     group->mode = (data[idx] >> 4) & 0x0f;
@@ -299,9 +299,9 @@ int decodePrescription(Prescription_t *p, unsigned char *data, int len)
 {
     int idx = 0;
     unsigned short prescLen;
-    prescLen = ((unsigned short)data[idx] << 8) + data[idx + 1];
+    prescLen = GETSHORT(data, idx);
     idx += 2;
-    p->id = ((unsigned short)data[idx] << 8) + data[idx + 1];
+    p->id = GETSHORT(data, idx);
     idx += 2;
     p->count = data[idx++];
     return idx;
@@ -382,7 +382,7 @@ static int checkGroup(unsigned char *data, int len)
 
     group.id = data[idx++];
     group.times = data[idx++];
-    group.interval = ((unsigned short)data[idx] << 8) + data[idx + 1];
+    group.interval = GETSHORT(data, idx);
     idx += 2;
     group.count = data[idx++];
     group.mode = (data[idx] >> 4) & 0x0f;
@@ -405,9 +405,9 @@ int checkPrescription(unsigned char *data, int len)
     Prescription_t prescription;
     int idx = 0, glen, i;
     unsigned short prescLen;
-    prescLen = ((unsigned short)data[idx] << 8) + data[idx + 1];
+    prescLen = GETSHORT(data, idx);
     idx += 2;
-    prescription.id = ((unsigned short)data[idx] << 8) + data[idx + 1];
+    prescription.id = GETSHORT(data, idx);
     idx += 2;
     prescription.count = data[idx++];
     for(i = 0; i < prescription.count; i++) {

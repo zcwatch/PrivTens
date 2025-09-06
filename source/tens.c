@@ -392,7 +392,7 @@ static void cmdFwDeal(unsigned char *data, int len)
 		dataWIdx = 6;
 		tensdataEraseFWFlash();
 	} 
-	pkgLen = ((unsigned short)data[3] << 8) + data[4]; //((unsigned short)data[2] << 8) + data[3];
+	pkgLen = GETSHORT(data, 3);
 	halFlashWrite(FWFILE_ADDR + dataWIdx, data + 5, pkgLen);
 	dataWIdx += pkgLen;
 	pkgCount++;
@@ -490,7 +490,7 @@ static void cmdTherapyDeal(unsigned char *data, int len)
 		//pos = data[1];
 		pkgTotal = data[1];
 		pkgIdx = data[2];
-		pkgLen = ((unsigned short)data[3] << 8) | data[4];
+		pkgLen = GETSHORT(data, 3);
 		
 		if(pkgIdx == 0) {		// first package
 			tpPkgCount = 0;
@@ -676,7 +676,7 @@ unsigned short tensGetPrescData(Tens_t *tens, unsigned char chann, unsigned char
 	if(p == 0) return 0;
 	
 	p += 9;
-	len = (*(p) << 8) | *(p + 1);
+	len = GETSHORT(p, 0);
 	for(i = 0; i < len; i++) data[i] = *(p + i);
 	return len;
 }
