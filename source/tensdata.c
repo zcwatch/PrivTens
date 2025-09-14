@@ -14,29 +14,6 @@ int tensdataSaveTherapyData(unsigned char id, unsigned char *data, int len)
 	
 }
 
-int tensdataSavePrescData(unsigned char id, unsigned char *data, int len)
-{
-	unsigned int addr;
-	if((id > PRESC_DATA_SIZE) || (id == 0)) return 0;
-	addr = PRESC_DATA_ADDR + FLASH_SECTOR * (id - 1);
-	halFlashErasePage(addr);
-	halFlashWrite(addr, &id, 1);
-	halFlashWrite(addr + 2, (unsigned char*)&len, 2);
-	halFlashWrite(addr + 4, data, len);
-	tensdataLoadPrescData();
-	return 1;
-}
-
-int tensdataSavePaintData(unsigned char id, unsigned char *data, int len)
-{
-	unsigned int addr;
-	if((id > HPAINT_DATA_SIZE) || (id == 0)) return 0;
-	addr = HPAINT_DATA_ADDR + FLASH_SECTOR * (id - 1);
-	halFlashErasePage(addr);
-	halFlashWrite(addr, data, len);
-	return 1;
-}
-
 unsigned short tensdataGetPrescDataFromFlash(unsigned char id, unsigned char *data)
 {
 	if((id > PRESC_DATA_SIZE) || (id == 0)) return 0;
@@ -51,22 +28,12 @@ void tensdataLoadPrescData(void)
 {
 	int i;
 	for(i = 0; i < PRESC_DATA_SIZE; i++) {
+		unsigned char *addr = (unsigned char*)(PRESC_DATA_ADDR + i * FLASH_SECTOR);
 		prescDatas[i].pos = i + 1;
-		if(prescDatas[i].pos == *(unsigned char*)(PRESC_DATA_ADDR + i * FLASH_SECTOR)) {
-			prescDatas[i].len = *(unsigned short*)(PRESC_DATA_ADDR + i * FLASH_SECTOR + 2);
-			prescDatas[i].data = (unsigned char*)(PRESC_DATA_ADDR + i * FLASH_SECTOR + 4);
-			prescDatas[i].id = GETSHORT((PRESC_DATA_ADDR + i * FLASH_SECTOR + 6), 0);
-		}
-	}
-}
-
-void tensdataLoadHPaintData(void)
-{
-	int i;
-	for(i = 0; i < HPAINT_DATA_SIZE; i++) {
-		if(paintData[i].id == *(unsigned char*)(HPAINT_DATA_ADDR + i * FLASH_SECTOR)) {
-			paintData[i].len = *(unsigned short*)(HPAINT_DATA_ADDR + i * FLASH_SECTOR + 2);
-			paintData[i].data = (unsigned char*)(HPAINT_DATA_ADDR + i * FLASH_SECTOR + 4);
+		if(prescDatas[i].pos == *addr) {
+			prescDatas[i].len = *(addr + 2);
+			prescDatas[i].data = (addr + 4);
+			prescDatas[i].id = GETSHORT((addr + 6), 0);
 		}
 	}
 }
@@ -74,9 +41,7 @@ void tensdataLoadHPaintData(void)
 void tensdataInit(void)
 {
 	tensdataLoadPrescData();
-	tensdataLoadHPaintData();
 }
-
 
 void tensdataEraseFWFlash(void)
 {

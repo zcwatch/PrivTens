@@ -283,67 +283,6 @@ KeyInfo_t keys[BUTTON_SIZE] = {
 	{0, 0, halReadChargeSta, batChargeStateChanged, 0},
 	{0, 0, btReadBtSta, btStatusChanged, 0}
 };
-//--------------------------------------------------------------------------------
-
-// static void cmdWaveDataDeal(unsigned char cmd, unsigned char *data, int len)
-// {
-// 	unsigned char params[4] = {0};
-// 	tensdataSavePaintData(data[0], data + 2, data[1]);
-
-// 	params[0] = data[0];
-// 	params[1] = data[1];
-// 	protoAck(&privateTens.proto, cmd, params, 2);
-// }
-
-// static void cmdPrescDeal(unsigned char cmd, unsigned char *data, int len)
-// {
-// 	unsigned char i, params[4] = {0};
-// 	unsigned short plen;
-// 	plen = (unsigned short)data[1] << 8 | data[2];
-// 	if(data[0] == 0) {
-
-// 	} else {
-// 		tensdataSavePrescData(data[0], data + 3, plen);
-// 	}
-	
-// 	for(i = 0; i < 3; i++) params[i] = data[i];
-// 	protoAck(&privateTens.proto, cmd, params, 3);
-// }
-
-// static void cmdSetTensDeal(unsigned char cmd, unsigned char *data, int len)
-// {
-// 	unsigned char i, params[4] = {0};
-// 	unsigned short id;
-// 	if(data[0] == 0x11) {	//set
-// 		tensLoadPrescData(&privateTens, data[2]);
-// 		for(i = 1; i < 2; i++) params[i] = data[i];
-// 		protoAck(&privateTens.proto, cmd, params, 3);
-// 	} else {
-// 		id = tensoutGetPrescription(&privateTens.tensOutput);
-// 		params[1] = data[1];
-// 		params[2] = id & 0xff;
-// 		params[3] = (id >> 8) & 0xff;
-// 		protoAck(&privateTens.proto, cmd, params, 4);
-// 	}
-// }
-
-// static void cmdSetTimeDeal(unsigned char cmd, unsigned char *data, int len)
-// {
-	// unsigned char params[5] = {0};
-	// unsigned short rmTime;
-	// if(data[0] == 0x11) {
-	// 	privateTens.runTime = data[1] << 8 | data[2];
-	// 	privateTens.defaultTime = data[3] << 8 | data[4];
-	// } else if(data[0] == 0x22) {
-	// 	rmTime = privateTens.runTime - privateTens.runTimeCount;
-	// 	params[1] = rmTime & 0xff;
-	// 	params[2] = (rmTime >> 8) & 0xff;
-	// 	params[3] = privateTens.defaultTime & 0xff;
-	// 	params[4] = (privateTens.defaultTime >> 8) & 0xff;
-	// }
-	// protoAck(&privateTens.proto, cmd, params, 5);
-// }
-
 
 static void cmdHandshankDeal(unsigned char *data, int len)
 {

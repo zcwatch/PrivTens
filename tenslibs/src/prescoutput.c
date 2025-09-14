@@ -410,7 +410,7 @@ void prescoutStart(PrescOutput_t *pout)
 {
     if(pout->prescDataLen == 0) return; 
     pout->state = PRESCOUT_RUN;
-	pout->isFsh = 0;
+    pout->isFsh = 0;
     pout->prescDataIdx = decodePrescription(&pout->prescription, pout->prescData, pout->prescDataLen);
     pout->groupDataIdx = pout->prescDataIdx;
     prescoutGroupInit(pout, 1);
