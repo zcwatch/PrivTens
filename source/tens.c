@@ -435,8 +435,8 @@ static void cmdTherapyDeal(unsigned char *data, int len)
 			tpPkgCount = 0;
 			tpDataWIdx = 6;
 			tensdataEraseTherapyFlash();
-		} 
-		
+		}
+
 		// Write data
 		halFlashWrite(PRESC_DATA_ADDR + tpDataWIdx, data + 5, pkgLen); 
 		tpDataWIdx += pkgLen;
@@ -445,9 +445,9 @@ static void cmdTherapyDeal(unsigned char *data, int len)
 		// Last package
 		if(pkgIdx + 1 == pkgTotal) {
 			pkgLen = TPMARK;
-			halFlashWrite(PRESC_DATA_ADDR, (unsigned char*)&pkgLen, 2);
+			halFlashWrite(PRESC_DATA_ADDR, (unsigned char*)&pkgLen, 2);  //Little end
 			tpDataWIdx -= 6;
-			halFlashWrite(PRESC_DATA_ADDR + 2, (unsigned char*)&tpDataWIdx, 4);
+			halFlashWrite(PRESC_DATA_ADDR + 2, (unsigned char*)&tpDataWIdx, 4);  //Little end
 			flag = 1;
 		}
 		params[3] = pkgIdx;
@@ -614,8 +614,7 @@ unsigned short tensGetPrescData(Tens_t *tens, unsigned char chann, unsigned char
 	p = tmFindPrescription(&tens->therapyManager, tens->prescId-1, chann);
 	if(p == 0) return 0;
 	
-	p += 9;
-	len = GETSHORT(p, 0);
+	len = GETSHORT(p, 0) + 2 + 1; //+Length+CRC
 	for(i = 0; i < len; i++) data[i] = *(p + i);
 	return len;
 }

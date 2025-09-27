@@ -38,7 +38,7 @@ typedef struct {
 	unsigned char heatLevel;
 	unsigned char vibMode;
 	unsigned char channelCnt;
-	
+
 	unsigned char prescId;
 
 	unsigned short runTime;

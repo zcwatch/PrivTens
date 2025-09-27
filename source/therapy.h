@@ -1,6 +1,8 @@
 #ifndef __THERAPY_H
 #define __THERAPY_H
 
+#include "tensconfig.h"
+
 /*
     疗法数据存储结构 
         [MARK 2字节] [疗法数据包总长度] [疗法数据包]
@@ -35,6 +37,7 @@ typedef struct {
     unsigned int dataLen;       //  数量长度
     unsigned int dataAddr;      //  数量地址
     unsigned char *therapy;     //  疗法数据地址
+    unsigned char *presc[PRESC_DATA_SIZE];     //  处方数据地址
 
     FlashEraseFunc erase;
     FlashWriteFunc write;

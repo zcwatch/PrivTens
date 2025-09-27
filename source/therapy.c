@@ -25,12 +25,22 @@ void tmSaveTherapy(TherapyManager_t *tm, unsigned char *data, unsigned short len
 
 unsigned char tmLoadTherapy(TherapyManager_t *tm)
 {
+    int i = 0;
+    unsigned char *therapy;
     unsigned short mark = *(unsigned short*)(tm->dataAddr);
     if(mark!= tm->mark) return 0;
     
     tm->dataLen = (GETSHORT(tm->dataAddr, 6) << 16) + GETSHORT(tm->dataAddr, 8);
     tm->count = *(unsigned char*)(tm->dataAddr + 10);
     tm->therapy = (unsigned char*)(tm->dataAddr + 11);
+
+    therapy = (unsigned char*)tm->therapy;
+    do {
+      tm->presc[i] = therapy + 4 + 2 + 1 + 1;
+      therapy += GETSHORT(therapy, 4) + 4 + 2 + 1;
+      i++;
+    } while (i < tm->count && i < PRESC_DATA_SIZE);
+
     return 1;
 }
 
@@ -44,18 +54,7 @@ unsigned char* tmFindTherapy(TherapyManager_t *tm, unsigned int id)
     unsigned char *p, i = 0;
     unsigned int idx = 0;
     unsigned short len;
-    
-    // ID超出数量
-    if(id > tm->count || !tm->en) return 0;
 
-    p = tm->therapy;
-    while(idx < id) {
-        len = GETSHORT(p, 4);
-        p += len + 4;
-        idx++;
-    }
-    
-    return p;
 }
 
 // 查找对应ID疗法对应通道的处方数据
@@ -66,22 +65,8 @@ unsigned char* tmFindTherapy(TherapyManager_t *tm, unsigned int id)
 // 返回：处方数据指针，失败返回0
 unsigned char* tmFindPrescription(TherapyManager_t *tm, unsigned char id, unsigned char chann)
 {
-    unsigned char *t, *p, idx = 0, chanCnt;
-    unsigned int tid;
-    unsigned short tlen, len;
-    
-    t = tmFindTherapy(tm, id);
-    if(t == 0) return 0;
-    
-    tlen = GETSHORT(t, 4);
-    chanCnt = *(unsigned char*)(t + 6);
-    if(chann >= chanCnt) return 0;
+    // ID超出数量
+    if(!tm->en || id >= tm->count || id >= PRESC_DATA_SIZE) return 0;
 
-    p = (unsigned char*)(t + 7);
-    while(idx < chann) {
-        len = GETSHORT(p, 0);
-        p += len + 2;
-        idx++;
-    }
-    return p;
+    return tm->presc[id];
 }

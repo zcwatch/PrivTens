@@ -403,7 +403,7 @@ unsigned char halScanKey(void)
 	return keyValue;
 }
 
-int halFlashWrite(unsigned int addr, unsigned char *data, int len)
+int halFlashWrite(unsigned int addr, unsigned char *data, unsigned int len)
 {
 	int i;
 	unsigned short dat;
@@ -425,9 +425,9 @@ void halFlashErasePage(unsigned int addr)
 	fmc_lock();
 }
 
-void halFlashErase(unsigned int addr, unsigned int size)
+int halFlashErase(unsigned int addr, unsigned int size)
 {
-	
+	return 0;
 }
 
 

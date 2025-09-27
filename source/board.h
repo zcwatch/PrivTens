@@ -39,9 +39,9 @@ unsigned short halGetHVAdc(void);
 void halLcdWriteData(unsigned char data);
 void halLcdWriteCmd(unsigned char cmd);
 
-int halFlashWrite(unsigned int addr, unsigned char *data, int len);
+int halFlashWrite(unsigned int addr, unsigned char *data, unsigned int len);
 void halFlashErasePage(unsigned int addr);
-void halFlashErase(unsigned int addr, unsigned int size);
+int halFlashErase(unsigned int addr, unsigned int size);
 
 
 #endif
