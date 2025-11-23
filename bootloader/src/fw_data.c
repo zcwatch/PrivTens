@@ -12,16 +12,16 @@ unsigned char fw_read_update_flag(void)
 
 int fw_update(void)
 {
-	uint32_t len = *(uint32_t*)(FW_ADDR + 2);
+	uint32_t len = *(uint32_t*)(FW_ADDR + 2) - 4; //FileLen=fw+CRC
 	uint32_t addr, wlen, i, crc1, crc = 0;
 	uint16_t data;
 	
-	crc1 = *(uint32_t*)(FW_ADDR + len + 2);
-	for(i = 0; i < len - 4; i++) {
+	crc1 = *(uint32_t*)(FW_ADDR + 6 + len);
+	for(i = 0; i < len; i++) {
 		crc += *(uint8_t*)(FW_ADDR + 6 + i);
 	}
 	
-	if(crc1 != crc) {
+	if(crc1 != crc || (len >= (FW_ADDR-APP_ADDR))) {
 		fmc_unlock();
 		fmc_halfword_program(FW_ADDR, 0);
 		fmc_lock();

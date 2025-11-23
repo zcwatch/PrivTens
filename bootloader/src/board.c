@@ -30,5 +30,7 @@ void hardware_init(void)
 	rcu_periph_clock_enable(RCU_GPIOB);
 	gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_8);	//POWER HOLD OFF
 	gpio_bit_set(GPIOB, GPIO_PIN_8);
-	wdt_init();
+#ifdef RELEASE
+	wdt_init(); //Debug close it
+#endif
 }
