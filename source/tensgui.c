@@ -5,8 +5,8 @@
 
 #define BAT_POS				248, 11
 #define BAT_RECT			BAT_POS, 303, 38
-#define BT_POS				218, 10
-#define BT_RECT				BT_POS, 233, 37
+#define BT_POS				20, 10
+#define BT_RECT				BT_POS, 35, 41
 
 #define PRESC_POS			70, 65
 #define PRESC_RECT		PRESC_POS, 169, 124
@@ -77,7 +77,7 @@ void guiPoweroff(void)
 
 void guiUpdateBluetooth(Tens_t *tens)
 {
-	//lcdFill(BT_RECT, WHITE);
+	lcdFill(218, 10, 233, 41, WHITE); //In gImage_mainui
 	if(tens->btState) lcdDispPic(BT_RECT, gImage_bton, BLACK, WHITE);
 	else lcdDispPic(BT_RECT, gImage_btoff, BLACK, WHITE);
 }
