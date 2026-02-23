@@ -320,19 +320,49 @@ static void cmdErrorDeal(unsigned char *data, int len)
 
 }
 
-unsigned short pkgCount, pkgLen;
+#ifndef RELEASE
+#define FWDEBUG_ADDR          ((unsigned int)0x08020000)
+#define FWDEBUG_SIZE          ((unsigned int)256)
+unsigned char debug_fw[FWDEBUG_SIZE];
+#endif
+
+unsigned short pkgCount, pkgLen, pkgMax;
 unsigned int dataWIdx;
 static void cmdFwDeal(unsigned char *data, int len)
 {
 	unsigned char flag = 0, params[4] = {TENSPROTO_GCMD_SYS, TENSPROTO_SYSCMD_FW, 0, 0};
 	unsigned short dataLen;
-	if(data[2] == 0x00) {
+	unsigned short dbgIndex;
+	if(data[2] == 0) {
 		pkgCount = 0;
 		dataWIdx = 6;
 		tensdataEraseFWFlash();
-	} 
+#ifndef RELEASE
+		memset((void*)debug_fw, 0xAA, FWDEBUG_SIZE);
+#endif
+	}
+
 	pkgLen = GETSHORT(data, 3);
-	halFlashWrite(FWFILE_ADDR + dataWIdx, data + 5, pkgLen);
+	//if(data[1] > 1 && data[2] == 0) //first package
+	if(data[1] != (data[2] + 1) && pkgMax == 0) {
+		pkgMax = pkgLen;
+	}
+
+#ifndef RELEASE
+	dbgIndex = data[2]*4;
+	debug_fw[dbgIndex+0] = data[1];
+	debug_fw[dbgIndex+1] = data[2];
+	debug_fw[dbgIndex+2] = data[3];
+	debug_fw[dbgIndex+3] = data[4];
+#endif
+
+	if(data[2] == 1) {
+		unsigned short temp = pkgCount;
+		temp++;
+		temp--;
+	}
+
+	halFlashWrite(FWFILE_ADDR + 6 + pkgMax*data[2], data + 5, pkgLen);
 	dataWIdx += pkgLen;
 	pkgCount++;
 
@@ -343,7 +373,14 @@ static void cmdFwDeal(unsigned char *data, int len)
 		dataWIdx -= 6;
 		halFlashWrite(FWFILE_ADDR + 2, (unsigned char*)&dataWIdx, 4);
 		flag = 1;
+
+#ifndef RELEASE
+	  debug_fw[pkgCount*4+0] = dataWIdx&0xFF;
+	  debug_fw[pkgCount*4+1] = (dataWIdx>>8)&0xFF;
+		halFlashWrite(FWDEBUG_ADDR, (unsigned char*)&debug_fw, FWDEBUG_SIZE);
+#endif
 	}
+
 	params[3] = data[2];
 	tprotoAck(&privateTens.proto, params, 4);
 	if(flag) guiFwUpdateFsh(&privateTens);

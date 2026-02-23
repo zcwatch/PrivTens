@@ -7,7 +7,7 @@
 #define WDT_EN			1
 #else
 #define WDT_EN			0
-#define TENS_TEST       0
+#define TENS_TEST		0
 #endif
 
 #define TICK_CNT		10
