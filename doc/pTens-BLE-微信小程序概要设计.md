@@ -149,22 +149,21 @@ pages/
 #### 3.2.1 数据帧格式
 
 ```
-┌────────┬──────────┬────────┬───────────┐
-│ Start  │ Command  │ Length│ Payload  │
-│  0xAA  │  Command │   N   │    N     │
-├────────┼──────────┼────────┼───────────┤
-│ Checksum│          │        │           │
-│  XOR   │          │        │           │
-└────────┴──────────┴────────┴───────────┘
+┌────────┬──────────┬────────┬─────────────┬──────────┐
+│ Start  │ Command  │ Length │ Payload     │ Checksum │
+│ 0xAA   │ 1 byte   │ 1 byte │ N bytes     │ 1 byte   │
+└────────┴──────────┴────────┴─────────────┴──────────┘
 ```
 
 | 字段 | 长度 | 说明 |
 |------|------|------|
 | Start | 1 | 帧头 0xAA |
 | Command | 1 | 命令码 |
-| Length | 1 | 数据长度 (N) |
+| Length | 1 | Payload长度 (N) |
 | Payload | N | 命令参数或数据 |
 | Checksum | 1 | XOR校验 (Start~Payload所有字节) |
+
+**字节序**: 多字节字段默认小端序(低字节在前)，如设备协议另有说明以设备协议为准。
 
 #### 3.2.2 命令码定义
 
@@ -181,18 +180,21 @@ pages/
 #### 3.2.3 响应格式
 
 ```
-┌────────┬──────────┬────────┐
-│ Start  │ Command │Status │
-│  0xAA  │ Command │ 0x01  │  = 成功
-│        │         │ 0x00  │  = 失败
-└────────┴──────────┴────────┘
+Start(0xAA) + Command + Length + Status + [Data...] + Checksum
 ```
+
+Status:
+0x01 = 成功
+0x00 = 失败
+
+说明:
+Length = 1 + Data长度
+当Status=0x00时，Data第1字节为ErrorCode
 
 #### 3.2.4 错误码
 
 | 错误码 | 说明 |
 |--------|------|
-| 0x00 | 成功 |
 | 0xFF | 通用错误 |
 | 0xFE | 无效参数 |
 
@@ -203,7 +205,7 @@ pages/
    │
 2. 发送0x10获取设备信息
    │  请求: AA 10 00 checksum
-   │  ←── 响应: AA 10 01 firmware_version hardware_id checksum
+   │  ←── 响应: AA 10 Len 01 firmware_version hardware_id checksum
    │
 3. 发送控制命令
    │  0x20: 开始输出
@@ -212,7 +214,7 @@ pages/
    │
 4. 定时轮询状态
    │  发送0x30读取数据
-   │  ←── 响应: 电量/状态/时间等
+   │  ←── 响应: AA 30 Len 01 battery state time_low time_high checksum
    │
 ```
 
@@ -221,7 +223,7 @@ pages/
 **1. 获取设备信息 (0x10)**
 ```
 请求: AA 10 00 (AA ^ 10 ^ 00 = BA)
-响应: AA 10 06 V1.00.03 V1.01.00 checksum
+响应: AA 10 Len 01 V1.00.03 V1.01.00 checksum
 ```
 
 **2. 开始TENS输出 (0x20)**
@@ -239,7 +241,7 @@ pages/
 **4. 读取状态 (0x30)**
 ```
 请求: AA 30 00 checksum
-响应: AA 30 04 battery state time_low time_high checksum
+响应: AA 30 05 01 battery state time_low time_high checksum
 ```
 
 **5. 设置强度 (0x40)**
@@ -262,10 +264,10 @@ pages/
 
 | 参数 | 值 |
 |------|-----|
-| 地址 | http://134.175.125.61:88/device/firmware |
-| 认证方式 | HTTP Basic Auth |
-| 用户名 | root |
-| 密码 | miniTENS220528 |
+| 测试地址 | http://134.175.125.61:88/device/firmware |
+| 生产地址 | https://{your-domain}/device/firmware |
+| 认证方式 | HTTP Basic Auth (测试) / Token (生产建议) |
+| 凭据 | 由后台安全配置下发，禁止硬编码 |
 
 #### 3.3.2 升级流程
 
@@ -311,12 +313,13 @@ pages/
 
 #### 3.3.3 固件选择功能
 
-- **BLE单包限制**: 20字节
-- **应用层分包**: 每包 ≤ 240字节
+- **BLE单包限制**: 默认20字节(未协商MTU)，协商后有效载荷 = MTU - 3
+- **应用层分包**: 固件数据块每包 ≤ 240字节
 - **KT6368A命令格式**:
   ```
   [Start:0xAA] [Cmd:0x50] [Length] [包序号:1] [总包数:1] [数据长度:2] [数据:240] [Checksum]
   ```
+- **BLE分片策略**: 0x50完整帧按MTU分片写入，设备端先重组帧，再对Payload做CRC校验
 - **确认机制**: 发送一包 → 等待ACK → 超时重试 → 继续下一包
 - **传输速率**: ~2KB/s (受BLE带宽限制)
 
@@ -361,19 +364,21 @@ pages/
 ##### 3.3.4.3 数据包格式
 
 ```
-发送数据包:
+发送数据包(0x50 Payload内容):
 ┌────────┬─────────┬───────┬────────┬───────┐
 │ 包序号  │ 总包数-1 │ 长度L │  数据  │ CRC8  │
 │  1B    │   1B    │  2B   │   L    │  1B   │
 └────────┴─────────┴───────┴────────┴───────┘
 
-响应ACK:
-┌────────┬───────┐
-│ 包序号  │ 状态  │
-│  1B    │  1B   │
-└────────┴───────┘
-状态: 0x00=成功, 0x01=CRC错误, 0x02=Flash错误
+响应ACK(0x50响应帧):
+Start(0xAA) + Command(0x50) + Length + Status + 包序号 + [ErrorCode] + Checksum
+Status: 0x01=成功, 0x00=失败
+ErrorCode: 0x01=CRC错误, 0x02=Flash错误
 ```
+
+说明:
+BLE帧校验使用XOR，固件数据块CRC8在Payload末尾，用于设备端写入前校验。
+CRC错误可选择不返回ACK以触发重传。
 
 ##### 3.3.4.4 重传流程实现
 
@@ -405,7 +410,7 @@ class FirmwareUploader {
   async sendPacket(pkgData) {
     return new Promise((resolve, reject) => {
       let timer;
-      const pkgNum = pkgData[0];
+      const pkgNum = pkgData[3];
       
       // 启动超时计时器
       timer = setTimeout(() => {
@@ -413,9 +418,9 @@ class FirmwareUploader {
       }, this.ackTimeout);
 
       // 等待设备ACK
-      this.onAckCallback = (ackPkgNum, status) => {
+      this.onAckCallback = (status, ackPkgNum) => {
         clearTimeout(timer);
-        if (ackPkgNum === pkgNum && status === 0x00) {
+        if (ackPkgNum === pkgNum && status === 0x01) {
           resolve(true);  // 成功
         } else {
           reject(new Error('ACK_ERROR_' + status));
@@ -476,12 +481,14 @@ class FirmwareUploader {
     const len = data.length;
     
     // 构建KT6368A帧格式:
-    // [Start:0xAA] [Cmd:0x50] [Length] [包序号] [总数-1] [长度2] [数据] [Checksum]
+    // [Start:0xAA] [Cmd:0x50] [Length] [包序号] [总数-1] [长度2] [数据] [CRC8] [Checksum]
+    const crc8 = this.calcCrc8(data);
     const payload = [
       pkgIdx,
       totalPkg - 1,
       len & 0xFF, (len >> 8) & 0xFF,
-      ...data
+      ...data,
+      crc8
     ];
     
     // 构建完整帧
@@ -499,11 +506,6 @@ class FirmwareUploader {
     return frame;
   }
 
-  // XOR校验计算
-    
-    return packet;
-  }
-
   // XOR校验计算 (KT6368A协议)
   // Checksum = Byte0 ^ Byte1 ^ ... ^ ByteN
   calcChecksum(data) {
@@ -512,6 +514,21 @@ class FirmwareUploader {
       checksum ^= data[i];
     }
     return checksum;
+  }
+
+  // CRC8计算 (算法以设备协议为准)
+  calcCrc8(data) {
+    // TODO: 根据KT6368A定义实现
+    return 0x00;
+  }
+
+  // BLE发送与辅助函数(示意)
+  sendBleData(data) {
+    // wx.writeBLECharacteristicValue(...)
+  }
+
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 ```
@@ -539,18 +556,20 @@ static void cmdFwDeal(unsigned char *data, int len)
     // 写入Flash
     if (halFlashWrite(FWFILE_ADDR + 6 + pkgMax*pkgIdx, data + 5, pkgLen) != 0) {
         // Flash错误,发送错误ACK
-        unsigned char ack[] = {pkgIdx, 0x02};  // 0x02=Flash错误
-        tprotoAck(&proto, ack, 2);
+        unsigned char ack[] = {0x00, pkgIdx, 0x02};  // Status=0x00, ErrorCode=0x02
+        tprotoAck(&proto, ack, 3);
         return;
     }
     
     // 发送成功ACK
-    unsigned char ack[] = {pkgIdx, 0x00};  // 0x00=成功
+    unsigned char ack[] = {0x01, pkgIdx};  // Status=0x01
     tprotoAck(&proto, ack, 2);
 }
 ```
 
 ##### 3.3.4.6 错误处理
+
+以下为小程序内部错误码，不等同于协议ErrorCode。
 
 | 错误类型 | 错误码 | 处理方式 |
 |----------|--------|----------|
@@ -650,17 +669,17 @@ static void cmdFwDeal(unsigned char *data, int len)
 
 | 参数 | 值 |
 |------|-----|
-| 地址 | http://134.175.125.61:88/device/therapy |
-| 认证方式 | HTTP Basic Auth |
-| 用户名 | root |
-| 密码 | miniTENS220528 |
+| 测试地址 | http://134.175.125.61:88/device/therapy |
+| 生产地址 | https://{your-domain}/device/therapy |
+| 认证方式 | HTTP Basic Auth (测试) / Token (生产建议) |
+| 凭据 | 由后台安全配置下发，禁止硬编码 |
 
 #### 3.5.2 疗法数据结构
 
 设备端疗法数据存储格式:
 
 ```
-[Mark: 2字节] [数据包总长度: 4字节] [疗法数量: 1字节] [疗法1] [疗法2] ... [疗法N]
+[Mark: 2字节] [数据包总长度: 4字节] [疗法数量: 2字节] [疗法1] [疗法2] ... [疗法N]
 ```
 
 单疗法数据格式:
@@ -949,7 +968,9 @@ firmwareInfo: {
   versionCode: number,    // 数值版本 105
   url: string,           // 下载URL
   size: number,          // 文件大小
-  md5: string,           // MD5校验
+  md5: string,           // MD5校验 (仅用于快速校验)
+  sha256: string,        // SHA-256校验 (推荐)
+  signature: string,     // 固件签名 (推荐)
   changelog: string,     // 更新日志
   releaseDate: string,   // 发布日期
 }
@@ -971,23 +992,31 @@ upgradeTask: {
 
 ## 6. 接口设计
 
+### 6.0 安全要求
+
+- 生产环境必须使用HTTPS
+- 凭据由安全配置下发，禁止写死在文档或代码中
+- 固件需提供SHA-256与签名校验，防止篡改
+- 下载链接需有最小权限与时效控制
+
 ### 6.1 服务器API
 
 #### 6.1.1 固件服务器配置
 
 | 参数 | 值 |
 |------|-----|
-| 地址 | http://134.175.125.61:88/device/firmware |
-| 认证方式 | HTTP Basic Auth |
-| 用户名 | root |
-| 密码 | miniTENS220528 |
+| 测试地址 | http://134.175.125.61:88/device/firmware |
+| 生产地址 | https://{your-domain}/device/firmware |
+| 认证方式 | HTTP Basic Auth (测试) / Token (生产建议) |
+| 凭据 | 由后台安全配置下发，禁止硬编码 |
 
 #### 6.1.2 获取固件列表
 
 ```
 GET /device/firmware
 
-Authorization: Basic base64(root:miniTENS220528)
+Authorization: Basic base64(username:password)
+或 Authorization: Bearer {token}
 
 Response: HTML页面 (目录列表)
 或 JSON格式固件列表
@@ -1006,7 +1035,8 @@ pTens_v1.00.03.bin
 ```
 GET /device/firmware/pTens_v1.00.05.bin
 
-Authorization: Basic base64(root:miniTENS220528)
+Authorization: Basic base64(username:password)
+或 Authorization: Bearer {token}
 
 Response: Binary文件流 (application/octet-stream)
 ```
@@ -1023,6 +1053,8 @@ Response:
   "url": "http://134.175.125.61:88/device/firmware/pTens_v1.00.05.bin",
   "size": 61440,
   "md5": "abc123...",
+  "sha256": "def456...",
+  "signature": "base64-signature...",
   "changelog": "更新内容...",
   "releaseDate": "2024-01-01"
 }
@@ -1041,11 +1073,11 @@ Response: Binary文件流
 #### 6.2.1 认证Header
 
 ```javascript
-// 用户名:密码 = root:miniTENS220528
-// Base64编码后: cm9vdDptaW5pVEVOUyAyMjA1Mjg=
+// username:password 由安全配置下发
+// Base64编码后: base64(username:password)
 
 const authHeader = {
-  'Authorization': 'Basic cm9vdDptaW5pVEVOUyAyMjA1Mjg='
+  'Authorization': 'Basic ' + wx.getStorageSync('firmwareAuth')
 }
 ```
 
@@ -1088,7 +1120,7 @@ function parseFirmwareList(html) {
 
 function parseVersionCode(version) {
   const parts = version.split('.');
-  return parseInt(parts[0]) * 100 + parseInt(parts[1]) * 10 + parseInt(parts[2]);
+  return parseInt(parts[0]) * 10000 + parseInt(parts[1]) * 100 + parseInt(parts[2]);
 }
 ```
 
@@ -1121,7 +1153,8 @@ wx.downloadFile({
 ```
 GET /device/therapy
 
-Authorization: Basic base64(root:miniTENS220528)
+Authorization: Basic base64(username:password)
+或 Authorization: Bearer {token}
 
 Response: HTML页面 (目录列表)
 或 JSON格式
@@ -1137,7 +1170,8 @@ therapy_02_颈椎病.bin
 ```
 GET /device/therapy/therapy_01_肩周炎.bin
 
-Authorization: Basic base64(root:miniTENS220528)
+Authorization: Basic base64(username:password)
+或 Authorization: Bearer {token}
 
 Response: Binary文件流
 ```
@@ -1152,7 +1186,7 @@ async function fetchTherapyList() {
       url: 'http://134.175.125.61:88/device/therapy',
       method: 'GET',
       header: {
-        'Authorization': 'Basic cm9vdDptaW5pVEVOUyAyMjA1Mjg='
+        'Authorization': 'Basic ' + wx.getStorageSync('firmwareAuth')
       },
       success: (res) => {
         // 解析HTML目录
@@ -1185,7 +1219,7 @@ async function downloadTherapy(therapy) {
     wx.downloadFile({
       url: `http://134.175.125.61:88/device/therapy/${therapy.filename}`,
       header: {
-        'Authorization': 'Basic cm9vdDptaW5pVEVOUyAyMjA1Mjg='
+        'Authorization': 'Basic ' + wx.getStorageSync('firmwareAuth')
       },
       success: (res) => {
         // 读取文件内容
@@ -1209,15 +1243,15 @@ function parseTherapyData(buffer) {
   let offset = 0;
   
   // 读取疗法数量
-  const therapyCount = view.getUint8(offset + 6);
-  offset = 11;
+  const therapyCount = view.getUint16(offset + 6, true);
+  offset = 16;
   
   const therapies = [];
   for (let i = 0; i < therapyCount; i++) {
-    const id = view.getUint32(offset);
+    const id = view.getUint32(offset, true);
     offset += 4;
     
-    const len = view.getUint16(offset);
+    const len = view.getUint16(offset, true);
     offset += 2;
     
     const chann = view.getUint8(offset);
@@ -1342,7 +1376,7 @@ therapyData: {
 ### 8.2 电量优化
 
 - 升级过程保持屏幕常亮
-- 后台传输使用Worklet
+- 后台传输使用小程序后台任务或保持前台，避免系统挂起
 - 完成后及时断开连接
 
 ---
