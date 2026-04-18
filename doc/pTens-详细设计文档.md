@@ -529,3 +529,71 @@ void btSenddata(unsigned char *data, int len);
 - 帧CRC错误
 - Flash写入失败
 - 疗法数据加载失败
+
+---
+
+## 8. 构建开发环境
+
+### 8.1 Keil MDK环境
+
+- **IDE**: Keil uVision V5.06+
+- **芯片包**: GigaDevice.GD32F30x_DFP
+- **项目文件**: `prj/privateTens.uvprojx`
+
+### 8.2 ARM GCC (Linux/Ubuntu) 环境
+
+项目支持在Ubuntu下使用ARM GCC工具链编译：
+
+**安装工具链**:
+```bash
+sudo apt update && sudo apt install -y gcc-arm-none-eabi
+```
+
+**编译命令**:
+```bash
+make              # Debug版本
+make BUILD=release # Release版本
+make clean        # 清理构建文件
+make size        # 查看占用空间
+```
+
+**输出文件**:
+- `build/privateTens.bin` - 二进制固件 (~53KB)
+- `build/privateTens.elf` - ELF调试文件
+
+**构建配置**:
+| 配置 | 值 |
+|------|-----|
+| CPU | GD32F303CC (Cortex-M4) |
+| Flash | 256KB (0x08000000) |
+| RAM | 48KB (0x20000000) |
+| 编译器 | arm-none-eabi-gcc 9.x |
+| 优化 | -Og (Debug) / -O2 (Release) |
+
+**创建的文件**:
+- `Makefile` - 构建规则
+- `startup_gd32f30x_hd.S` - GCC启动文件
+- `ldscript.ld` - 链接脚本
+
+**烧录方式**:
+```bash
+# J-Link
+JLinkExe -device GD32F303CC -if SWD - CommanderScript flash.jlink
+
+# OpenOCD
+openocd -f interface/jlink.cfg -c "transport select swd" -c "source [find target/stm32f1x.cfg]" -c "flash write_image erase build/privateTens.bin 0x08000000"
+```
+
+### 8.3 项目结构
+
+```
+PrivTens/
+├── Makefile              # GCC构建文件
+├── startup_gd32f30x_hd.S # 启动代码
+├── ldscript.ld          # 链接脚本
+├── prj/                 # Keil项目
+├── source/              # 应用源码
+├── tenslibs/             # 处方库
+├── eeprom_in_flash/      # EEPROM模拟
+└── GD32F30x_Firmware_Library/ # GD32固件库
+```
